@@ -1,0 +1,82 @@
+1. Go to your collection template and fid this code section
+<ul class="grid grid--uniform{% if collection.products_count > 0 %} grid--view-items{% endif %}">
+        {% for product in collection.products %}
+add class and date:
+data-next-url="{{paginate.next.url}}"
+class="products-on-page"
+
+example:
+<ul data-next-url="{{paginate.next.url}}" class="products-on-page grid grid--uniform{% if collection.products_count > 0 %} grid--view-items{% endif %}">
+
+2. second html code end of the </ul> tag find this code and add after this code
+{% else %}
+            {%- assign is_empty_collection = true -%}
+          {% endif %}
+        {% endfor %}
+      </ul> 
+code:
+<div class="load-more">
+      <a class="load-more_btn btn" onclick="loadMoreProducts()">Load More</a>
+      <div class="load-more_spinner"></div>
+</div>
+
+3. add css code for designing load more button
+.load-more{text-align:center;margin-top:45px;}
+.load-more_spinner{
+    display: none;
+	width: 35px;
+	height: 35px;
+	border: 5px solid #f3f3f3;
+	border-top: 5px solid #3a3a3a;
+	border-radius: 50%;
+	margin-left: auto;
+	margin-right: auto;
+	animation: 2s spin linear infinite;
+}
+@keyframes spin{
+	0%{transform:rotate(0deg)}
+	100%{transform:rotate(360deg)}
+}
+
+4. Go to assets and create a new collection-load-more.js file and paste this code:
+
+var products_on_page = $('.products-on-page');
+var next_url = products_on_page.data('next-url');
+
+var load_more_btn = $('.load-more_btn ');
+var load_more_spinner = $('.load-more_spinner');
+
+function loadMoreProducts() {
+  $.ajax(
+    {
+      url: next_url,
+      type: 'GET',
+      dataType: 'html',
+      beforeSend: function(){
+      	load_more_btn.hide();
+        load_more_spinner.show();
+      }
+
+    }
+  ).done(function(next_page){
+	
+    load_more_spinner.hide();
+    
+    var new_products = $(next_page).find('.products-on-page');
+    var new_url = new_products.data('next-url');
+    
+    if(new_url)
+      load_more_btn.show();
+
+    next_url = new_url;
+    products_on_page.append(new_products.html());
+
+  })
+
+}
+
+5. Go to layout area paste this code on the theme.liquid file:
+
+{% if template contains 'collection' %}
+  <script src="{{ 'collection-load-more.js' | asset_url }}" defer="defer"></script>
+  {%endif%}
